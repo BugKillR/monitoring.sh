@@ -21,6 +21,20 @@ STORAGEPERC=$(echo "scale=0; $STORAGEUSEDCALC*100/$STORAGESIZE" | bc)
 
 #STORAGE
 
+CPUUSEPERC=$(top -bn1 | grep "%Cpu(s)" | awk -F',' '{print$4}' | awk '{print$1}')
+CPUUSE=$(echo "100-$CPUUSEPERC" | bc)
+
+LASTBOOT=$(who -b | awk '{print$3}')
+LASTBOOTCLOCK=$(who -b | awk '{print$4}')
+
+LVMUSE=$(lsblk -o TYPE | wrep -qw lvm && echo "yes" || echo "no")
+
+TCP=$(echo "$(ss -tan state established | tail -n +2 | wc -l) ESTABLISHED")
+USERLOG=$(who | wc -l)
+IPV4=$(hostname -I | awk '{print$1}')
+MAC=$(ip link show | grep "link/ether" | awk '{print$2}')
+SUDO=$(sudo grep "COMMAND" /var/log/sudo/sudo.log | wc -l)
+
 #SCRIPT
 
 echo    "#Architecture : $(uname -a)"
@@ -28,3 +42,10 @@ echo    "#CPU physical : $(lscpu | grep "Socket(s):" | awk '{print$2}')"
 echo    "#vCPU : $(nproc)"
 echo    "#Memory Usage : $USEDMEM/$TOTALMEM MB ($MEMPERCENTAGE%)"
 echo    "#Disk Usage : $STORAGEUSEDTEXT/$STORAGESIZEGB$BARKGB ($STORAGEPERC%)"
+echo    "#CPU load: $CPUUSE%"
+echo    "#Last boot: $LASTBOOT $LASTBOOTCLOCK"
+echo    "#LVM use: $LVMUSE"
+echo    "#Connections TCP : $TCP"
+echo    "#User log: $USERLOG"
+echo    "#Network: IP $IPV4 $MAC"
+echo    "#Sudo : $SUDO cmd"
